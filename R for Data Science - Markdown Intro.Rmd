@@ -1,0 +1,195 @@
+---
+title: "R for Data Science - Markdown Intro"
+author: "Maltö"
+date: "24 September 2019"
+output: html_document
+params:
+  model: "a4"
+  start: !r lubridate::now()
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ggplot2)
+library(dplyr)
+smaller <- diamonds %>% 
+  filter(carat <= 2.5)
+```
+
+
+
+# Help
+A good resource to receive help is by clicking *Help > Markdown Quick Reference*. The default linked page is <http://rmarkdown.rstudio.com>.
+
+### Useful Shortcuts:
+* **Knit whole document:** *Ctr + Shift + R* (unfortunately doesn't work all the time)
+* **Insert Code Chunk:** *Ctr + Alt + I*
+
+# Text and Formatting
+
+## Font Types
+* **Bold:** Use either **Stars** or _Underscores__
+* **Italic:** Use either *Stars* or _Underscores_
+* **Code:** Use `Single Backticks`
+* **Superscripts:** Use the Power-^sign^
+* **Subscripts:** Use the Tilde-~sign~
+* **Footnotes:** Use Sqaured Brackets with the power sign [^1]
+
+[^1]: You'll have to numerate them beforehand
+
+> Use the arrow sign at the beggining of a line for Blockquotes
+
+## Lists & Enumerations
+
+* List Item No. 1
+* List Item No. 2
+  *Sub List Item
+  *Sub Liste Item
+
+1. Enumeration Item No.1
+1. Second enumeration item
+1. The numbers are incremented automatically
+
+## Links & Images
+* <http://example.com>
+* [link text](http://example.com)
+* ![optional caption text](zzz_example.jpg)
+
+## Tables
+
+First Header  | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Cell
+
+## Page Break
+
+You can end the page by using three or more stars or dashes
+An html-Document will just print a line (see below)
+
+-----
+
+
+
+
+# Integration of code
+
+## Chunks
+You can embed an R code chunk like this (Shortcut in RStudio: *Str + Alt + I*):
+
+```{r Hello World}
+print("Hello World")
+```
+
+It is often useful to give each code chunk a name right after the letter *'r'*.
+There are a number of arguments that can be executed for each chunk. The whole format is: `{r Chunk Name, Optional Argument 1, Optional Argument2}`. The most important arguments are:
+
+* `eval = FALSE` won't execute the code within the chunk
+* `include = FALSE` will execute the code but completely hide any output
+* `echo = FALSE` will only show the results (graphs and tables) but no code
+* `message = FALSE` and ` warning = FALSE` will hide messages and warnings (no shit)
+* `cache = TRUE` will save the output in cache and not re-run unless code within the code is changed (clean cache with `knitr::clean_cache`)
+* `dependson = character_vector` will also re-run code in all chunks specified in the character vector as long as this code is re-run (to prevent irregularities caused by a TRUE cache argument in "dependson"-chunks)
+* **Full List** at <https://yihui.name/knitr/options/>
+
+In order to apply an option globally (i.e. for all chunks), use the `knitr::opts_chunk$set` command (ideally in the first setup chunk). The function takes many arguments separated by commas.
+
+## Code in Text
+You can also integrate R-output within the text. Use ``r` followed by a space and the corresponding code for that. For example, the number of rows in the `mtcars` dataset is `r nrow(mtcars)`.
+
+## Data Frames
+
+By default, data frames will be shown like in the R console:
+
+```{r cars}
+head(mtcars)
+```
+
+Alternatively, use `kable`:
+```{r}
+knitr::kable(head(mtcars))
+```
+
+For more control consult `?knitr::table` or look at thep packages `xtable`, `stargazer`, `pander`, `tables` or `ascii`.
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+
+
+We have data about `r nrow(diamonds)` diamonds. Only 
+`r nrow(diamonds) - nrow(smaller)` are larger than
+2.5 carats. The distribution of the remainder is shown
+below:
+
+```{r, echo = FALSE}
+smaller %>% 
+  ggplot(aes(carat)) + 
+  geom_freqpoly(binwidth = 0.01)
+```
+
+## Working Example: Diamonds
+There are many exercises to examine the `diamonds` dataset in Wickhams [Data Science for R](https://r4ds.had.co.nz/index.html). The size of a diamond can be plotted against its cut:
+
+```{r cut carat, echo = FALSE}
+ggplot(diamonds, aes(cut, carat)) +
+  geom_boxplot() +
+  theme_bw()
+```
+
+This reveals an interesting property. On average, ideally cut diamonds weigh less than diamonds with a worse cut. Note that carat basically measures the weight of a stone. A similar observation can be made with respect to color and clarity:
+
+```{r color carat, echo = FALSE}
+ggplot(diamonds, aes(color, carat)) +
+  geom_boxplot() +
+  theme_bw()
+```
+
+```{r clarity carat, echo = FALSE}
+ggplot(diamonds, aes(clarity, carat)) +
+  geom_boxplot() +
+  theme_bw()
+```
+
+Note that I1 & J corresond to the worst category respectively.
+
+### Diamond sizes
+
+The 20 biggest largest diamonds are:
+
+```{r 20 diamonds, echo = FALSE}
+comma <- function(x) format(x, digits = 2, big.mark = ",")
+diamonds %>%
+  arrange(desc(carat)) %>%
+  head(20) %>%
+  knitr::kable()
+```
+
+Naturally, they are characterised by high values for there length (`x`), width (`y`) and height (`z`). Moreover, a lot of them have the clarity "I1" which is the worst. This is in line with the previous findings but still surprising.
+
+
+# Advanced
+
+## Parameters
+
+You can set and access parameters in the document header. Here, I set a parameter `model: "a4"` in the document header. The code below accesses the parameter with `params$class` to return a plot with the model *A4* exclusively.
+
+```{r parameter SUV, echo = FALSE}
+library(ggplot2)
+library(dplyr)
+set.seed(100)
+ggplot(data = filter(mpg, model == "a4"), aes(x = year, y = displ)) +
+  geom_jitter() +
+  theme_bw()
+```
+
+Another parameter set in the intro let's you know that generating this document started at `r params$start`. The `Knit` dropdown menu supports setting parameters. For even crazier ideas check `rmarkdown::render`, `purrr:pwalk` and [this example](https://r4ds.had.co.nz/r-markdown.html#parameters).
+
